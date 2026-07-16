@@ -6,11 +6,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.grpc.sample.proto.HelloReply;
 import org.springframework.grpc.sample.proto.HelloRequest;
 import org.springframework.grpc.sample.proto.SimpleGrpc;
+import org.springframework.grpc.util.SingleValueObserver;
+import org.springframework.grpc.util.MultiValueObserver;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import reactor.core.publisher.Flux;
 import io.grpc.stub.StreamObserver;
 
 @Service
+@RestController
 public class GrpcServerService extends SimpleGrpc.SimpleImplBase {
 
 	private static Log log = LogFactory.getLog(GrpcServerService.class);
@@ -44,6 +51,20 @@ public class GrpcServerService extends SimpleGrpc.SimpleImplBase {
 			}
 		}
 		responseObserver.onCompleted();
+	}
+
+	@PostMapping(path = "Json/SayHello", produces = "application/json")
+	public HelloReply sayHello(@RequestBody HelloRequest req) {
+		SingleValueObserver<HelloReply> observer = new SingleValueObserver<>();
+		sayHello(req, observer);
+		return observer.getValue();
+	}
+
+	@PostMapping(path = "Json/StreamHello", produces = "application/x-ndjson")
+	public Flux<HelloReply> stream(@RequestBody HelloRequest req) {
+		MultiValueObserver<HelloReply> observer = new MultiValueObserver<>();
+		streamHello(req, observer);
+		return observer.getValue();
 	}
 
 }

@@ -30,6 +30,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<spring-javaformat-maven-plugin.version>0.0.43</spring-javaformat-maven-plugin.version>
+		<spring-grpc.version>1.1.1-SNAPSHOT</spring-grpc.version>
 		<server.http2.enabled>true</server.http2.enabled>
 	</properties>
 	<dependencies>
@@ -46,17 +47,26 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>io.grpc</groupId>
-		    <artifactId>grpc-servlet-jakarta</artifactId>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-servlet-jakarta</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-otel</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-grpc-client-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-webclient-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
