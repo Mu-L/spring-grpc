@@ -109,9 +109,7 @@ public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message
 
 		MessageDecoderFunction decoderFunction = new MessageDecoderFunction(elementType, this.maxMessageSize);
 
-		return (Flux<Message>) Flux.from(inputStream)
-			.flatMapIterable(decoderFunction)
-			.doOnTerminate(decoderFunction::discard);
+		return (Flux<Message>) Flux.from(inputStream).flatMapIterable(decoderFunction);
 	}
 
 	@Override
@@ -179,12 +177,16 @@ public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message
 
 		@Override
 		public Iterable<? extends Message> apply(DataBuffer input) {
+			// start tracks how many leading characters of this.buffer have been
+			// processed and are safe to discard. It is declared outside the try block
+			// so the finally clause can always clean up the consumed portion, even when
+			// an exception is thrown mid-processing.
+			int start = 0;
 			try {
 				List<Message> messages = new ArrayList<>();
 				try (java.io.InputStream is = input.asInputStream()) {
 					this.buffer.append(new String(is.readAllBytes(), StandardCharsets.UTF_8));
 				}
-				int start = 0;
 				while (start < this.buffer.length()) {
 					while (start < this.buffer.length() && Character.isWhitespace(this.buffer.charAt(start))) {
 						start++;
@@ -197,6 +199,12 @@ public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message
 								"Buffer size exceeds configured limit (" + this.maxMessageSize + ")");
 					}
 					String remaining = this.buffer.substring(start);
+					// CountingReader intentionally returns 1 character per read() call so
+					// that JsonReader cannot buffer past the end of the current JSON
+					// value.
+					// This makes getPosition() an accurate boundary marker but means
+					// skipValue() performs O(n) individual reads. Replacing this with a
+					// buffered approach would require a custom JSON boundary scanner.
 					CountingReader countingReader = new CountingReader(remaining);
 					try (JsonReader jsonReader = new JsonReader(countingReader)) {
 						try {
@@ -210,17 +218,22 @@ public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message
 							break;
 						}
 						catch (IOException e) {
+							// Malformed JSON: discard the entire buffer so we do not
+							// waste CPU re-parsing the same invalid bytes on every
+							// subsequent DataBuffer delivery.
+							start = this.buffer.length();
 							throw new DecodingException("Malformed JSON in stream", e);
 						}
 					}
 					int consumed = countingReader.getPosition();
+					// Advance start before merge so that structurally-valid-but-invalid
+					// protobuf JSON is also discarded rather than retried indefinitely.
 					String json = this.buffer.substring(start, start + consumed);
+					start += consumed;
 					Message.Builder builder = getMessageBuilder(this.elementType.toClass());
 					JsonFormat.parser().merge(new StringReader(json), builder);
 					messages.add(builder.build());
-					start += consumed;
 				}
-				this.buffer.delete(0, start);
 				return messages;
 			}
 			catch (DecodingException ex) {
@@ -233,12 +246,13 @@ public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message
 				throw new DecodingException("Could not read Protobuf message: " + ex.getMessage(), ex);
 			}
 			finally {
+				// Always discard the processed portion of the buffer, including on
+				// exception paths. Without this, malformed input would cause the buffer
+				// to grow on every call until maxMessageSize is reached, with each call
+				// wastefully re-parsing already-rejected bytes from position 0.
+				this.buffer.delete(0, start);
 				DataBufferUtils.release(input);
 			}
-		}
-
-		public void discard() {
-			// No DataBuffer to release
 		}
 
 		/**

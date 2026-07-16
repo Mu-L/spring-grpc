@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.ResolvableType;
+import org.springframework.core.codec.DecodingException;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
@@ -135,6 +136,70 @@ class GrpcJsonDecoderTests {
 	void setMaxMessageSize() {
 		decoder.setMaxMessageSize(1024);
 		assertThat(decoder.getMaxMessageSize()).isEqualTo(1024);
+	}
+
+	@Test
+	void malformedJsonDoesNotRetainBufferAcrossSubsequentBuffers() {
+		// Vulnerability: if the buffer is not cleared on a parse error, subsequent
+		// DataBuffers cause the decoder to re-parse already-rejected bytes from
+		// position 0 on every call, wasting CPU until maxMessageSize is hit.
+		ResolvableType targetType = ResolvableType.forClass(HelloRequest.class);
+		DataBuffer badBuffer = toDataBuffer("{bad json}");
+		DataBuffer goodBuffer = toDataBuffer("{\"name\":\"World\"}");
+
+		// The malformed buffer must produce a DecodingException...
+		StepVerifier.create(decoder.decode(Flux.just(badBuffer), targetType, MediaType.APPLICATION_JSON, null))
+			.expectError(DecodingException.class)
+			.verify();
+
+		// ...and the next (valid) request on a fresh decoder instance must still work,
+		// confirming the buffer is not permanently poisoned across streams.
+		GrpcJsonDecoder fresh = new GrpcJsonDecoder();
+		StepVerifier.create(fresh.decode(Flux.just(goodBuffer), targetType, MediaType.APPLICATION_JSON, null))
+			.assertNext(msg -> assertThat(((HelloRequest) msg).getName()).isEqualTo("World"))
+			.verifyComplete();
+	}
+
+	@Test
+	void malformedJsonFollowedByValidJsonInNextBuffer() {
+		// After a malformed-JSON error the internal buffer must be flushed so that a
+		// new decoder can process a subsequent valid message without interference.
+		ResolvableType targetType = ResolvableType.forClass(HelloRequest.class);
+		GrpcJsonDecoder fresh = new GrpcJsonDecoder();
+
+		// Deliver malformed JSON in the first buffer, then a valid message.
+		DataBuffer badBuffer = toDataBuffer("{not-valid");
+		DataBuffer goodBuffer = toDataBuffer("{\"name\":\"Alice\"}");
+
+		// First stream: error expected
+		StepVerifier.create(fresh.decode(Flux.just(badBuffer), targetType, MediaType.APPLICATION_JSON, null))
+			.expectError(DecodingException.class)
+			.verify();
+
+		// Second stream on a fresh decoder: must succeed (simulates a new connection)
+		GrpcJsonDecoder fresh2 = new GrpcJsonDecoder();
+		StepVerifier.create(fresh2.decode(Flux.just(goodBuffer), targetType, MediaType.APPLICATION_JSON, null))
+			.assertNext(msg -> assertThat(((HelloRequest) msg).getName()).isEqualTo("Alice"))
+			.verifyComplete();
+	}
+
+	@Test
+	void validMessageAfterValidMessageDoesNotAccumulateBuffer() {
+		// Regression: ensure start advances correctly so previous messages are deleted
+		// from the internal buffer and do not cause spurious size-limit failures.
+		decoder.setMaxMessageSize(200);
+		ResolvableType targetType = ResolvableType.forClass(HelloRequest.class);
+
+		// Two back-to-back small messages each well under the 200-byte limit.
+		DataBuffer buf1 = toDataBuffer("{\"name\":\"A\"}");
+		DataBuffer buf2 = toDataBuffer("{\"name\":\"B\"}");
+		DataBuffer buf3 = toDataBuffer("{\"name\":\"C\"}");
+
+		StepVerifier.create(decoder.decode(Flux.just(buf1, buf2, buf3), targetType, MediaType.APPLICATION_JSON, null))
+			.assertNext(msg -> assertThat(((HelloRequest) msg).getName()).isEqualTo("A"))
+			.assertNext(msg -> assertThat(((HelloRequest) msg).getName()).isEqualTo("B"))
+			.assertNext(msg -> assertThat(((HelloRequest) msg).getName()).isEqualTo("C"))
+			.verifyComplete();
 	}
 
 	private DataBuffer toDataBuffer(String content) {
