@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.webflux;
+package org.springframework.grpc.web.reactive;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -57,7 +57,7 @@ import reactor.core.publisher.Mono;
  * byte streams to protocol buffer {@link Message} objects.
  *
  * @author Dave Syer
- * @since 1.0.0
+ * @since 1.1.1
  */
 public class GrpcJsonDecoder extends GrpcCodecSupport implements Decoder<Message> {
 

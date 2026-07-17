@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.util;
+package org.springframework.grpc.web.util;
 
 import io.grpc.stub.StreamObserver;
 import reactor.core.publisher.Flux;

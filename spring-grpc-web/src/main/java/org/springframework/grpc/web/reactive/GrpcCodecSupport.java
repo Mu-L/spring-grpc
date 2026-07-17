@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.webflux;
+package org.springframework.grpc.web.reactive;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +31,7 @@ import org.springframework.util.MimeType;
  * different message processing scenarios.
  *
  * @author Dave Syer
- * @since 1.0.0
+ * @since 1.1.1
  */
 public abstract class GrpcCodecSupport {
 

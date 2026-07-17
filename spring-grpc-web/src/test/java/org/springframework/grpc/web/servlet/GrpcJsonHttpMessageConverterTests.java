@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.webmvc;
+package org.springframework.grpc.web.servlet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

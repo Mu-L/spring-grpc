@@ -6,15 +6,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.grpc.sample.proto.HelloReply;
 import org.springframework.grpc.sample.proto.HelloRequest;
 import org.springframework.grpc.sample.proto.SimpleGrpc;
-import org.springframework.grpc.util.SingleValueObserver;
-import org.springframework.grpc.util.MultiValueObserver;
+import org.springframework.grpc.web.util.MultiValueObserver;
+import org.springframework.grpc.web.util.SingleValueObserver;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import reactor.core.publisher.Flux;
 import io.grpc.stub.StreamObserver;
+import reactor.core.publisher.Flux;
 
 @Service
 @RestController

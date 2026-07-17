@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.webflux;
+package org.springframework.grpc.web.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

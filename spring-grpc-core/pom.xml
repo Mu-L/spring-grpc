@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.grpc</groupId>
@@ -12,12 +12,6 @@
 	<packaging>jar</packaging>
 	<name>Spring gRPC Core</name>
 	<description>Core module for gRPC programming</description>
-
-	<properties>
-		<!-- just for tests -->
-		<protobuf-java.version>4.35.0</protobuf-java.version>
-		<grpc.version>1.81.0</grpc.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -58,23 +52,8 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-core</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java-util</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -153,46 +132,7 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>io.github.ascopes</groupId>
-				<artifactId>protobuf-maven-plugin</artifactId>
-				<version>5.1.4</version>
-				<configuration>
-					<protoc>${protobuf-java.version}</protoc>
-				</configuration>
-				<executions>
-					<execution>
-						<id>deps</id>
-						<goals>
-							<goal>generate-test</goal>
-						</goals>
-						<configuration>
-							<plugins>
-								<plugin kind="binary-maven">
-									<groupId>io.grpc</groupId>
-									<artifactId>protoc-gen-grpc-java</artifactId>
-									<version>${grpc.version}</version>
-									<options>@generated=omit</options>
-								</plugin>
-							</plugins>
-							<sourceDirectories>
-								<sourceDirectory>src/test/proto</sourceDirectory>
-							</sourceDirectories>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 
 	<profiles>
 		<profile>

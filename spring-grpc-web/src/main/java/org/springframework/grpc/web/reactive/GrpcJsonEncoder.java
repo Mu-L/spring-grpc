@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.grpc.webflux;
+package org.springframework.grpc.web.reactive;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +45,7 @@ import reactor.core.publisher.Flux;
  * reactive streams, converting messages to byte streams.
  *
  * @author Dave Syer
- * @since 1.0.0
+ * @since 1.1.1
  */
 public class GrpcJsonEncoder extends GrpcCodecSupport implements HttpMessageEncoder<Message> {
 

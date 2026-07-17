@@ -18,7 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import tools.jackson.databind.json.JsonMapper;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.grpc.server.port=0" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 @AutoConfigureWebClient
 public class JsonIntegrationTests {
