@@ -1,12 +1,12 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '4.1.1-SNAPSHOT'
+	id 'org.springframework.boot' version '4.1.2-SNAPSHOT'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'com.google.protobuf' version '0.9.6'
 }
 
 group = 'com.example'
-version = '1.1.1-SNAPSHOT'
+version = '1.1.2-SNAPSHOT'
 
 def toolchainVersion() {
 	if (project.hasProperty('testToolchain')) {
@@ -28,7 +28,7 @@ repositories {
 	maven { url 'https://repo.spring.io/snapshot' }
 }
 
-def springGrpcVersion = project.properties['springGrpcVersion'] ?: '1.1.1-SNAPSHOT'
+def springGrpcVersion = project.properties['springGrpcVersion'] ?: '1.1.2-SNAPSHOT'
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-grpc-server'
