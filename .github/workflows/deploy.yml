@@ -33,9 +33,5 @@ jobs:
         sonatype_password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
         central_username: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
         central_password: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
-        signing_key: ${{ secrets.GPG_PRIVATE_KEY }}
-        passphrase: ${{ secrets.GPG_PASSPHRASE }}
       run: |
-          echo "${signing_key}" > private.asc
-          gpg --import --batch --no-tty private.asc
           ./mvnw -B deploy -s .mvn/settings.xml

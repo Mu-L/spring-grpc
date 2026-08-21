@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
-	<profiles>
-		<profile>
-			<id>release</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<gpg.passphrase>${env.passphrase}</gpg.passphrase>
-			</properties>
-		</profile>
-	</profiles>
 	<servers>
 		<server>
 			<id>central</id>
